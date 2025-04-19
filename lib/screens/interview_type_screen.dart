@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../utils/interview_roles.dart';
 import '../config/constants.dart';
 import '../models/interview_session.dart';
 import '../models/user_profile.dart';
 import 'input_info_screen.dart';
+
 
 class InterviewTypeScreen extends StatelessWidget {
   final String name;
@@ -76,24 +78,126 @@ class InterviewTypeScreen extends StatelessWidget {
   }
 
   void _showRoleSelection(BuildContext context) {
+    String searchQuery = '';
+    String selectedCategory = 'All';
+
+    // Combine 'All' with other categories
+    final Map<String, List<String>> categoriesMap = {
+      'All': InterviewRoles.getAllRoles(),
+      ...InterviewRoles.categories,
+    };
+
+    List<String> filteredRoles = [...categoriesMap['All']!];
+
+    void filterRoles() {
+      final categoryRoles = categoriesMap[selectedCategory] ?? [];
+      if (searchQuery.isEmpty) {
+        filteredRoles = categoryRoles;
+      } else {
+        filteredRoles = categoryRoles
+            .where((role) => role.toLowerCase().contains(searchQuery.toLowerCase()))
+            .toList();
+      }
+    }
+
     showModalBottomSheet(
       context: context,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Select your role', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            ...InterviewRoles.getAllRoles().map((role) => ListTile(
-              title: Text(role),
-              onTap: () {
-                Navigator.pop(context);
-                _navigateToInputInfo(context, InterviewType.technical, role);
-              },
-            )),
-          ],
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateModal) => Container(
+          padding: EdgeInsets.only(
+            top: 20.0,
+            left: 20.0,
+            right: 20.0,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
+          ),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    'Select your role',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  )
+                ],
+              ),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search roles...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setStateModal(() {
+                      searchQuery = value;
+                      filterRoles();
+                    });
+                  },
+                ),
+              ),
+
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: categoriesMap.keys.map((category) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: ChoiceChip(
+                        label: Text(category),
+                        selected: selectedCategory == category,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setStateModal(() {
+                              selectedCategory = category;
+                              filterRoles();
+                            });
+                          }
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Expanded(
+                child: filteredRoles.isEmpty
+                    ? const Center(child: Text('No matching roles found'))
+                    : ListView.builder(
+                  itemCount: filteredRoles.length,
+                  itemBuilder: (context, index) {
+                    final role = filteredRoles[index];
+                    return ListTile(
+                      title: Text(role),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _navigateToInputInfo(context, InterviewType.technical, role);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

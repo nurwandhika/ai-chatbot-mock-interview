@@ -14,18 +14,18 @@ class AppStrings {
   static const userInterview = 'Technical Interview';
 }
 
-class InterviewRoles {
-  static const softwareEngineer = 'Software Engineer';
-  static const uiUxDesigner = 'UI/UX Designer';
-  static const dataAnalyst = 'Data Analyst';
-  static const productManager = 'Product Manager';
-  static const marketingSpecialist = 'Marketing Specialist';
-
-  static List<String> getAllRoles() => [
-    softwareEngineer,
-    uiUxDesigner,
-    dataAnalyst,
-    productManager,
-    marketingSpecialist,
-  ];
-}
+// class InterviewRoles {
+//   static const softwareEngineer = 'Software Engineer';
+//   static const uiUxDesigner = 'UI/UX Designer';
+//   static const dataAnalyst = 'Data Analyst';
+//   static const productManager = 'Product Manager';
+//   static const marketingSpecialist = 'Marketing Specialist';
+//
+//   static List<String> getAllRoles() => [
+//     softwareEngineer,
+//     uiUxDesigner,
+//     dataAnalyst,
+//     productManager,
+//     marketingSpecialist,
+//   ];
+// }

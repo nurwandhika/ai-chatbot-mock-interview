@@ -1,5 +1,5 @@
-// lib/widgets/role_selector.dart
 import 'package:flutter/material.dart';
+import '../utils/interview_roles.dart';
 
 class RoleSelector extends StatefulWidget {
   final Function(String) onRoleSelected;
@@ -14,19 +14,8 @@ class RoleSelector extends StatefulWidget {
 }
 
 class _RoleSelectorState extends State<RoleSelector> {
-  final List<String> _roles = [
-    'Software Engineer',
-    'Mobile Developer',
-    'Web Developer',
-    'Data Scientist',
-    'UI/UX Designer',
-    'Product Manager',
-    'QA Engineer',
-    'DevOps Engineer',
-    'Frontend Developer',
-    'Backend Developer',
-  ];
-
+  // Use the roles from the central utility class
+  final List<String> _roles = InterviewRoles.getAllRoles();
   String? _selectedRole;
 
   @override

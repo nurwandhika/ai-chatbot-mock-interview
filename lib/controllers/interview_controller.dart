@@ -3,7 +3,6 @@ import 'dart:async';
 import '../models/interview_session.dart';
 import '../models/user_profile.dart';
 import '../services/gemini_service.dart';
-import '../services/speech_service.dart';
 
 class InterviewController {
   final GeminiService _geminiService = GeminiService();
@@ -99,20 +98,6 @@ class InterviewController {
       _loadingStreamController.add(false);
     }
   }
-
-  // // Start speech recognition
-  // Future<bool> startListening(Function(String) onResult) async {
-  //   return _speechService.startListening(onResult);
-  // }
-
-  // // Stop speech recognition
-  // Future<void> stopListening() async {
-  //   await _speechService.stopListening();
-  // }
-  //
-  // bool get isSpeechAvailable => _speechService.isAvailable;
-  //
-  // bool get isListening => _speechService.isListening;
 
   // Clean up resources
   void dispose() {
