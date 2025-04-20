@@ -15,6 +15,46 @@ class GeminiService {
   Map<String, dynamic> _context = {};
   bool _isFirstQuestion = true;
 
+  // List of common interviewer names
+  static const List<String> _hrInterviewerNames = [
+    'Sarah',
+    'Michael',
+    'Lisa',
+    'David',
+    'Sophia',
+    'James',
+    'Emma',
+    'John',
+    'Olivia',
+    'Robert',
+    'Maya',
+    'Daniel',
+    'Rina',
+    'Alex',
+    'Maria',
+  ];
+
+  static const List<String> _technicalInterviewerNames = [
+    'Ryan',
+    'Rachel',
+    'Sam',
+    'Nina',
+    'Dev',
+    'Thomas',
+    'Priya',
+    'Kevin',
+    'Lena',
+    'Brian',
+    'Jane',
+    'Mark',
+    'Sasha',
+    'Eric',
+    'Diana',
+  ];
+
+  // The Interviewer's name
+  late String _interviewerName;
+
   // Initialize with interview details
   void setupInterviewContext({
     required String userName,
@@ -24,6 +64,14 @@ class GeminiService {
     String language = 'en',
     String? cvSummary,
   }) {
+    // Select an appropriate interviewer name based on interview type
+    final namesList =
+        (interviewType == InterviewType.hr)
+            ? _hrInterviewerNames
+            : _technicalInterviewerNames;
+
+    _interviewerName = namesList[Random().nextInt(namesList.length)];
+
     _context = {
       'userName': userName,
       'age': age,
@@ -31,35 +79,42 @@ class GeminiService {
       'role': role,
       'language': language,
       'cvSummary': cvSummary,
+      'interviewerName': _interviewerName,
     };
     _isFirstQuestion = true;
 
     // In GeminiService class, setupInterviewContext method
-    debugPrint('CV SUMMARY RECEIVED: ${cvSummary?.substring(0, min(50, cvSummary?.length ?? 0))}... (${cvSummary?.length ?? 0} chars)');
+    debugPrint(
+      'CV SUMMARY RECEIVED: ${cvSummary?.substring(0, min(50, cvSummary?.length ?? 0))}... (${cvSummary?.length ?? 0} chars)',
+    );
 
     // Log the setup information
     debugPrint('Interview Setup: ${json.encode(_context)}');
+    debugPrint('Interviewer Name: $_interviewerName');
   }
 
   // Start interview session by getting first question from AI
   Future<String> startInterview() async {
     final langText =
-    _context['language'] == 'id' ? 'Bahasa Indonesia' : 'English';
+        _context['language'] == 'id' ? 'Bahasa Indonesia' : 'English';
     final cvInfo =
-    _context['cvSummary'] != null
-        ? 'CV/Background info: ${_context['cvSummary']}'
-        : '';
+        _context['cvSummary'] != null
+            ? 'CV/Background info: ${_context['cvSummary']}'
+            : '';
 
     final prompt = '''
 You are a professional ${_context['interviewType']} interviewer conducting an interview in $langText.
+IMPORTANT: Your name is ${_context['interviewerName']}. You must introduce yourself as ${_context['interviewerName']} and never as "[Your Name]" or any placeholder.
 Your candidate is ${_context['userName']}, ${_context['age']} years old.
 ${_context['interviewType'] == 'Technical' ? 'The position is for ${_context['role']}.' : ''}
 $cvInfo
 
-Start the interview with a professional greeting and ask the first interview question.
+Start the interview with a professional greeting that includes your name ${_context['interviewerName']} explicitly, and ask the first interview question.
 The first question should ask the candidate to introduce themselves and their background.
 Be natural and professional like in a real interview.
 Ask only one question.
+
+REMEMBER: Your name is ${_context['interviewerName']}. Do NOT use placeholders like [Your Name] or [Name].
 ''';
 
     // Log the initial prompt
@@ -76,11 +131,11 @@ Ask only one question.
 
   // Continue interview with user answer
   Future<Map<String, dynamic>> continueInterview(
-      String userAnswer,
-      List<QuestionAnswer> conversation,
-      ) async {
+    String userAnswer,
+    List<QuestionAnswer> conversation,
+  ) async {
     final langText =
-    _context['language'] == 'id' ? 'Bahasa Indonesia' : 'English';
+        _context['language'] == 'id' ? 'Bahasa Indonesia' : 'English';
 
     // Format conversation history
     String conversationText = _formatConversationHistory(conversation);
@@ -93,6 +148,7 @@ Ask only one question.
     // Create follow-up prompt
     final followUpPrompt = '''
 You are a professional ${_context['interviewType']} interviewer conducting an interview in $langText.
+IMPORTANT: Your name is ${_context['interviewerName']}. Always use this exact name if you need to refer to yourself.
 ${_context['interviewType'] == 'Technical' ? 'The position is for ${_context['role']}.' : ''}
 ${_context['cvSummary'] != null ? 'CV/Background info: ${_context['cvSummary']}' : ''}
 
@@ -103,6 +159,8 @@ ${forceEnd ? 'The interview needs to end now. Provide a final assessment in JSON
 Don't repeat questions that have already been asked.
 ${forceEnd || conversation.length >= 18 ? 'Provide the final assessment in JSON format.' : 'If you\'ve asked a total of 10 questions or covered all relevant areas, provide the final assessment in JSON format.'}
 The final assessment should be in this exact format: {"score": X, "strengths": ["point1", "point2"], "improvements": ["point1", "point2"], "feedback": "text"}
+
+REMEMBER: Your name is ${_context['interviewerName']}. Never use placeholders like [Your Name].
 ''';
 
     // Log the follow-up prompt
@@ -149,10 +207,10 @@ The final assessment should be in this exact format: {"score": X, "strengths": [
   String _extractQuestion(String response) {
     // Clean up response to extract just the question
     final cleanResponse =
-    response
-        .replaceAll(RegExp(r'Interviewer:|Candidate:'), '')
-        .replaceAll(RegExp(r'\n+'), '\n')
-        .trim();
+        response
+            .replaceAll(RegExp(r'Interviewer:|Candidate:'), '')
+            .replaceAll(RegExp(r'\n+'), '\n')
+            .trim();
 
     return cleanResponse;
   }
@@ -229,7 +287,9 @@ The final assessment should be in this exact format: {"score": X, "strengths": [
         'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=$_apiKey',
       );
 
-      debugPrint('Trying fallback model at: ${fallbackUrl.toString().split('?').first}');
+      debugPrint(
+        'Trying fallback model at: ${fallbackUrl.toString().split('?').first}',
+      );
 
       final response = await http.post(
         fallbackUrl,

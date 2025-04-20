@@ -30,6 +30,17 @@ class _InterviewScreenState extends State<InterviewScreen> {
   void initState() {
     super.initState();
     _setupInterview();
+
+    // Add listener to update character count
+    _textController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
   }
 
   Future<void> _setupInterview() async {
@@ -191,7 +202,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                         color: Colors.blue[100],
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text('Interviewer: ${qa.question}'),
+                      child: Text('${qa.question}'),
                     ),
                     // Answer if exists
                     if (qa.answer != null)
@@ -205,7 +216,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text('You: ${qa.answer}'),
+                        child: Text('${qa.answer}'),
                       ),
                   ],
                 );
@@ -214,6 +225,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
           ),
 
           // Input area
+          // Input area
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -221,11 +233,14 @@ class _InterviewScreenState extends State<InterviewScreen> {
                 Expanded(
                   child: TextField(
                     controller: _textController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Type your answer...',
                       border: OutlineInputBorder(),
+                      counterText: '${_textController.text.length}/280',
                     ),
                     maxLines: null,
+                    minLines: 1,
+                    maxLength: 280, // Limit to 280 characters
                     enabled: !_isComplete,
                   ),
                 ),
@@ -240,9 +255,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                   onPressed: (_isSendingAnswer || _isComplete)
                       ? null
                       : () {
-                    if (_textController.text
-                        .trim()
-                        .isNotEmpty) {
+                    if (_textController.text.trim().isNotEmpty) {
                       _sendAnswer(_textController.text);
                     }
                   },
