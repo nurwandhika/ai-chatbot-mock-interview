@@ -114,6 +114,7 @@ The first question should ask the candidate to introduce themselves and their ba
 Be natural and professional like in a real interview.
 Ask only one question.
 
+IMPORTANT: Do NOT prefix your responses with "${_context['interviewerName']}:" or "Interviewer:". Just provide the response directly without any name prefixes.
 REMEMBER: Your name is ${_context['interviewerName']}. Do NOT use placeholders like [Your Name] or [Name].
 ''';
 
@@ -206,11 +207,13 @@ REMEMBER: Your name is ${_context['interviewerName']}. Never use placeholders li
   // Extract question from AI response
   String _extractQuestion(String response) {
     // Clean up response to extract just the question
-    final cleanResponse =
-        response
-            .replaceAll(RegExp(r'Interviewer:|Candidate:'), '')
-            .replaceAll(RegExp(r'\n+'), '\n')
-            .trim();
+    final cleanResponse = response
+    // Remove any name followed by colon (like "Nina:" or "Interviewer:")
+        .replaceAll(RegExp(r'[A-Za-z]+:\s*'), '')
+        .replaceAll(RegExp(r'Interviewer:\s*'), '')
+        .replaceAll(RegExp(r'Candidate:\s*'), '')
+        .replaceAll(RegExp(r'\n+'), '\n')
+        .trim();
 
     return cleanResponse;
   }
